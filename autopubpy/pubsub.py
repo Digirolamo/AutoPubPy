@@ -150,11 +150,6 @@ def method_publish(topic=u"", options=PublishOptions()):
     Examples:
         class DailyMessage(Publisher):
             topic = 'com.dailymessage'
-            def __init__(self, message=None):
-                super(DailyMessage, self).__init__()
-                self._message = ""
-                if message is not None:
-                    self.set_message(message)
 
             @method_publish(topic="message_changed")
             def set_message(self, message):
@@ -166,7 +161,8 @@ def method_publish(topic=u"", options=PublishOptions()):
         #Explanation
         In this example, using set_message("Hello World") calls
         session.publish(
-            #The Topic
+
+            #The full URI
             "com.dailymessage.message_changed",
 
             #The *args
