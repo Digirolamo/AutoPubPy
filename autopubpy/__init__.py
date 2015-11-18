@@ -1,1 +1,2 @@
-from _version import __version__
+#pylint: skip-file
+from autopubpy._version import __version__

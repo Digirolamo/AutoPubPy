@@ -3,17 +3,17 @@ It is intended to run as the main entry point of tests.
 
 You can run this file by writing "python -m autopubpy.tests"
 """
-from six.moves import input
+from six.moves import input  #pylint: disable=redefined-builtin
 
 def check_if_all_tests_pass(option='-x'):
     """Runs all of the tests and only returns True if all tests pass.
 
     Args:
-        option (unicode): The -x option is default, -x will 
+        option (unicode): The -x option is default, -x will
             tell pytest to exit on the first encountered failure.
-            The -s option prints out stdout from the tests 
+            The -s option prints out stdout from the tests
             (this is normally hidden.)
-            
+
     """
     import pytest
     options = [option]
