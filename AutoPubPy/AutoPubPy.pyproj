@@ -5,7 +5,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>6545850b-7904-494d-9fe9-d977006bc755</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>AutoPubPy.py</StartupFile>
+    <StartupFile>
+    </StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,7 +23,10 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AutoPubPy.py" />
+    <Compile Include="models.py" />
+    <Compile Include="pubsub.py" />
+    <Compile Include="tls.py" />
+    <Compile Include="__init__.py" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
