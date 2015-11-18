@@ -1,33 +1,31 @@
-import collections
-import weakref
-from functools import wraps
+"""Class and functions for creating Publisher models.
 
+This module contains the building blocks used to create
+Publisher models. The models in models.py are created using
+this module.
+
+"""
+import collections
+import functools
+import weakref
 from autobahn import wamp
 from autobahn.wamp.types import SubscribeOptions, PublishOptions
 from twisted.internet.defer import inlineCallbacks, returnValue
 
-def publish(topic=None, options=PublishOptions()):  
-    def publish_decorator(func):
-        @wraps(func)
-        def publish_after(self, *args, **kwargs):
-            return_value = func(self, *args, **kwargs)
-            print func.__name__
-            pub_id = unicode(id(self))
-            #pub_topic = u"{}.{}.{}".format(topic, pub_id)
-            kwargs['options'] = options
-            kwargs['method'] = func.__name__
-            #print self, len(self.subscribers), self.subscribers
-            if self._propagate:
-                for subscriber in self.subscribers:
-                    pub_topic = self.topic
-                    print pub_topic, self, args, kwargs
-                    subscriber.publish(pub_topic, *args, **kwargs)
-            return return_value
-        return publish_after
-    return publish_decorator
+
+
 
 class Publisher(object):
-    "publisher doc"
+    """
+
+    Subclass this object to create datatypes that publish method calls to
+    various sessions.
+
+    Attributes:
+        topic (unicode): The base URI of publish events.
+
+    
+    """
     topic = 'com'
     update_method = "as_JSON"
     def __init__(self):
@@ -85,3 +83,79 @@ class Publisher(object):
         instance.set_JSON(json_string)
         yield instance.subscribe(session)
         returnValue(instance)
+
+def method_publish(topic=u"", options=PublishOptions()):
+    """A function that returns a publishing decorator.
+
+    When creating a Publisher subclass, use this function to decorate
+    methods you intend to publish. When the method is called, both the 
+    method name, and the arguments are published to the topic.
+
+    Args:
+        topic (unicode): The URI topic that the method will call on publish.
+            This topic is appened to the Publishers .topic.
+        options (PublishOptions): The publish options used with subscriber.publish
+
+    Returns:
+        callable: The function intended to decorate a method of a Publisher subclass.
+
+    Examples:
+        class DailyMessage(Publisher):
+            topic = 'com.dailymessage'
+            def __init__(self, message=None):
+                super(DailyMessage, self).__init__()
+                self._message = ""
+                if message is not None:
+                    self.set_message(message)
+
+            @method_publish(topic="message_changed")
+            def set_message(self, message):
+                self._message = message
+
+        daily_message = DailyMessage()
+        daily_message.set_message("Hello World")
+
+        #Explanation
+        In this example, using set_message("Hello World") calls 
+        session.publish(
+            #The Topic
+            "com.dailymessage.message_changed", 
+
+            #The *args
+            ("Hello World, ),
+            
+            #The **kwargs along with 'method' and 'options'
+            {'method': 'set_message',
+            'options': <PublishOptions> instance}
+            )                      
+
+    """
+    if not isinstance(topic, unicode):
+        raise TypeError("Topic must be unicode not {}.".format(type(topic)))
+    if not isinstance(options, PublishOptions):
+        raise TypeError("options must be PublishOptions not {}.".format(type(options)))
+    def publish_decorator(func):
+        if not isinstance(func, callable):
+            raise TypeError("Decorator must be used on a Publisher method. "
+                "Cannot be used on {}.".format(type(func)))
+        @functools.wraps(func)
+        def publish_after(self, *args, **kwargs):
+            if not isinstance(self, Publisher):
+                raise TypeError("method_publish must be used on a Publisher subclass. "
+                    "Cannot be used on {}.".format(func.__name__))
+            return_value = func(self, *args, **kwargs)
+            print func.__name__
+            kwargs['options'] = options
+            kwargs['method'] = func.__name__
+            #print self, len(self.subscribers), self.subscribers
+            if self._propagate:
+                if not topic:
+                    pub_topic = self.topic
+                else:
+                    pub_topic = "{base}.{topic}".format(self.topic, topic)
+                    print pub_topic, self, args, kwargs
+                for subscriber in self.subscribers:
+                    subscriber.publish(pub_topic, *args, **kwargs)
+            return return_value
+        return publish_after
+    return publish_decorator
