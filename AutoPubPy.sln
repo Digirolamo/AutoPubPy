@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "AutoPubPy", "AutoPubPy\AutoPubPy.pyproj", "{6545850B-7904-494D-9FE9-D977006BC755}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "AutoPubPy", "autopubpy.pyproj", "{6545850B-7904-494D-9FE9-D977006BC755}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

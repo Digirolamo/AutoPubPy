@@ -13,8 +13,6 @@ from autobahn.wamp.types import SubscribeOptions, PublishOptions
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 
-
-
 class Publisher(object):
     """
 
@@ -83,6 +81,7 @@ class Publisher(object):
         instance.set_JSON(json_string)
         yield instance.subscribe(session)
         returnValue(instance)
+
 
 def method_publish(topic=u"", options=PublishOptions()):
     """A function that returns a publishing decorator.
