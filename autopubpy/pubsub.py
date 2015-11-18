@@ -7,6 +7,7 @@ this module.
 """
 import collections
 import functools
+import types
 import weakref
 from autobahn import wamp
 from autobahn.wamp.types import SubscribeOptions, PublishOptions
@@ -134,7 +135,7 @@ def method_publish(topic=u"", options=PublishOptions()):
     if not isinstance(options, PublishOptions):
         raise TypeError("options must be PublishOptions not {}.".format(type(options)))
     def publish_decorator(func):
-        if not isinstance(func, callable):
+        if type(func) is not types.FunctionType:
             raise TypeError("Decorator must be used on a Publisher method. "
                 "Cannot be used on {}.".format(type(func)))
         @functools.wraps(func)

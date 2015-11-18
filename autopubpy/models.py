@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 import collections
 import copy
 import json
-from wstools.pubsub import Publisher, publish
+from autopubpy.pubsub import Publisher, method_publish
 
 class wsEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -47,7 +47,7 @@ class JSONDict(Publisher, collections.MutableMapping, JSONable):
             return super(JSONDict, self).__getitem__(name)
         return self.__getitem__(name)
                  
-    @publish()
+    @method_publish()
     def __setitem__(self, key, value):
         return self._container.__setitem__(key, value)
         
@@ -58,7 +58,7 @@ class JSONDict(Publisher, collections.MutableMapping, JSONable):
             raise ValueError("Value must be jsonable.")
         self.__setitem__(name, value)
 
-    @publish()
+    @method_publish()
     def __delitem__(self, key):
         return self._container.__delitem__(key)
     
