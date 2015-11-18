@@ -26,6 +26,7 @@
     <Compile Include="models.py" />
     <Compile Include="pubsub.py" />
     <Compile Include="tls.py" />
+    <Compile Include="_version.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>
   <PropertyGroup>
