@@ -24,7 +24,7 @@ class MetaJSON(ABCMeta):
     """An object that works."""
 
     @abstractmethod
-    def as_JSON(self):
+    def as_json(self):
         """Returns the object in it's json form."""
 
 class JSONable(object):
@@ -41,16 +41,16 @@ class JSONDict(Publisher, collections.MutableMapping, JSONable):
 
     def __getitem__(self, key):
         return self._container.__getitem__(key)
-           
+
     def __getattr__(self, name):
         if name in self._protect_attributes:
             return super(JSONDict, self).__getitem__(name)
         return self.__getitem__(name)
-                 
+
     @method_publish()
     def __setitem__(self, key, value):
         return self._container.__setitem__(key, value)
-        
+
     def __setattr__(self, name, value):
         if name in self._protect_attributes:
             return super(JSONDict, self).__setattr__(name, value)
@@ -61,26 +61,26 @@ class JSONDict(Publisher, collections.MutableMapping, JSONable):
     @method_publish()
     def __delitem__(self, key):
         return self._container.__delitem__(key)
-    
+
     def __delattr__(self, name):
         self.__delattr__(name)
 
     def __iter__(self):
         return self._container.__iter__()
-        
+
     def __len__(self):
         return self._container.__len__()
 
     def __repr__(self):
         cls_name = self.__class__.__name__
-        json_string = self.as_JSON()
+        json_string = self.as_json()
         str = "{}.from_JSON({})".format(cls_name, json_string)
         return str
 
     def as_dict(self):
         return self._container
 
-    def as_JSON(self):
+    def as_json(self):
         payload = json_encoder.encode(self)
         return payload
 

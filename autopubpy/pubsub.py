@@ -8,7 +8,6 @@ this module.
 import functools
 import types
 import weakref
-from autobahn import wamp
 from autobahn.wamp.types import PublishOptions
 from twisted.internet.defer import inlineCallbacks, returnValue
 

@@ -7,8 +7,14 @@ from six.moves import input
 
 def check_if_all_tests_pass(option='-x'):
     """Runs all of the tests and only returns True if all tests pass.
-       The -x option is the default, and -x will tell pytest to exit on the first encountered failure.
-       The -s option prints out stdout from the tests (normally hidden.)"""
+
+    Args:
+        option (unicode): The -x option is default, -x will 
+            tell pytest to exit on the first encountered failure.
+            The -s option prints out stdout from the tests 
+            (this is normally hidden.)
+            
+    """
     import pytest
     options = [option]
     arguments = options
