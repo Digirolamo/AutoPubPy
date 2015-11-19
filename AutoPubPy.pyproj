@@ -21,6 +21,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="autopubpy\auth.py" />
     <Compile Include="autopubpy\models.py" />
     <Compile Include="autopubpy\pubsub.py" />
     <Compile Include="autopubpy\tests\__init__.py" />
