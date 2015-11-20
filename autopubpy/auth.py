@@ -94,25 +94,32 @@ class ClientAuthComponent(ApplicationSession):
     responding to authenticating.
 
     """
-    def __init__(self, *args, **kwargs):
-        self._userid = None
-        self._password = None
-        super(ClientAuthComponent, self).__init__(*args, **kwargs)
 
-    def set_authid_pass(self, authid, password):
-        """Sets the authid and password, must occur before connections.
+    @classmethod
+    def set_default_user_id(cls, userid):
+        """Sets the default userid (authid) of the component class.
 
         Args:
-        authid (unicode): The unique identifier of the client.
-            Could be a username.
-        password (unicode): The password or secret key for the client.
+            userid (unicode): The authid unique identifier of the client.
+                Could be a username.
 
         """
-        if not isinstance(authid, unicode) or not isinstance(password, unicode):
-            raise ValueError("authid and password must both be unicode, not "
-                             "{} and {}".format(type(authid), type(password)))
-        self._userid = authid
-        self._password = password
+        if not isinstance(userid, unicode):
+            raise ValueError("userid must be unicode, not {}."
+                             "".format(type(userid)))
+        cls._userid = userid
+
+    @classmethod
+    def set_default_password(cls):
+        """Sets the default password of the component class.
+
+        Args:
+            password (unicode): The password or secret key for the client.
+        """
+        if not isinstance(password, unicode):
+            raise ValueError("password must be unicode, not {}."
+                             "".format(type(password)))
+        cls._password = password
 
     def onConnect(self):
         """Connects using the set username."""
