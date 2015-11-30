@@ -1,4 +1,4 @@
-"""This module contains component classes for server and client
+﻿"""This module contains component classes for server and client
 authorization and authentication.
 
 Note:
@@ -110,7 +110,7 @@ class ClientAuthComponent(ApplicationSession):
         cls._userid = userid
 
     @classmethod
-    def set_default_password(cls):
+    def set_default_password(cls, password):
         """Sets the default password of the component class.
 
         Args:
