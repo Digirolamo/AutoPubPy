@@ -142,7 +142,7 @@ class ClientAuthComponent(ApplicationSession):
         """
         #print challenge.extra, challenge.extra
         if challenge.method == u"ticket":
-            signature = 'test'.decode('ascii')
+            signature = self._password
             return signature
         else:
             raise ValueError("Can only respond to ticket, not "
