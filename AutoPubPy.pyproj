@@ -27,6 +27,9 @@
     <Compile Include="autopubpy\qtsession.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="autopubpy\tests\test_simplemodels.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="autopubpy\tests\__init__.py" />
     <Compile Include="autopubpy\tests\__main__.py" />
     <Compile Include="autopubpy\tls.py" />
