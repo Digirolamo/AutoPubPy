@@ -24,6 +24,9 @@
     <Compile Include="autopubpy\auth.py" />
     <Compile Include="autopubpy\models.py" />
     <Compile Include="autopubpy\pubsub.py" />
+    <Compile Include="autopubpy\qtsession.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="autopubpy\tests\__init__.py" />
     <Compile Include="autopubpy\tests\__main__.py" />
     <Compile Include="autopubpy\tls.py" />
