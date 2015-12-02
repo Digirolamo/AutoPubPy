@@ -93,7 +93,12 @@ class ClientAuthComponent(ApplicationSession):
     """A client component intented to be used as-is or subclassed for
     responding to authenticating.
 
+    Args:
+        topic (unicode): The base topic for events.
+
     """
+
+    topic = "com"
 
     @classmethod
     def set_default_user_id(cls, userid):
@@ -147,3 +152,47 @@ class ClientAuthComponent(ApplicationSession):
         else:
             raise ValueError("Can only respond to ticket, not "
                              "{}".format(challenge.method))
+
+
+    def create_topic_uri(self, topic):
+        """Get the username formated uri of a topic.
+
+        Appends self.topic and the username to topic.
+
+        Args:
+            topic (unicode): The topic to be appended to the end of the uri.
+
+        Returns:
+            unicode: The full uri.
+
+        """
+        base_topic = self.topic
+        if base_topic:
+            base_topic += u'.'
+        uri = u"{base_topic}{username}.{topic}".format(
+            base_topic=base_topic,
+            username=self._userid,
+            topic=topic)
+
+    def user_publish(self, topic, data):
+        """Publishes data to the user id uri space of the realm.
+        
+        Args:
+            topic (unicode): The topic to be published.
+            data (object): Data that can be published.
+        
+        """
+        uri = self.create_topic_uri(topic)
+        self.publish(uri, data)
+
+    def user_publish(self, handler, topic):
+        """Subscribes to events in the user id uri space of the realm.
+        
+        Args:
+            data (callable): When we get a publish event, 
+                the callback is called.
+            topic (unicode): The topic to be published.
+        
+        """
+        uri = self.create_topic_uri(topic)
+        self.subscribe(handler, uri)
