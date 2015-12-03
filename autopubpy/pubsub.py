@@ -1,4 +1,4 @@
-"""Class and functions for creating Publisher models.
+﻿"""Class and functions for creating Publisher models.
 
 This module contains the building blocks used to create
 Publisher models. The models in models.py are created using
@@ -90,7 +90,7 @@ class Publisher(object):
 
     @classmethod
     @inlineCallbacks
-    def create_for_server(cls, session, topic=None):
+    def create_new(cls, session, topic=None):
         """Creates a new Publisher instance to be used with the session.
 
         Args:
