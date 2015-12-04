@@ -1,4 +1,4 @@
-"""This module contains an application class that emits Qt Signals."""
+﻿"""This module contains an application class that emits Qt Signals."""
 from autobahn.twisted.wamp import ApplicationSession
 from autobahn.wamp.exception import ApplicationError
 from PySide import QtCore
@@ -20,17 +20,23 @@ class _QUserSessionSignals(QtCore.QObject):
     SessionLeft = QtCore.Signal(object, object)
 
 class QApplicationSession(ApplicationSession):
-    """{description here}
+    """
+    Allows Qt signals to be emitted with Autobahn ApplicationSession method calls, the problem with
+    having this inherit from QObject is the two classes have methods with the same name making it 
+    messy trying to mix the two
+
+    At least for ipython, it won't create a session if this as an __ini__ method
 
     Attributes:
-        SessionConnect (QtCore.Signal): Emited when onConnect is called.
-        SessionDisconnected (QtCore.Signal): Emited when onDisconnect is called.
+        SessionOpened (QtCore.Signal): Emitted when a transport is opened?
+        SessionConnect (QtCore.Signal): Emitted when onConnect is called.
+        SessionJoined (QtCore.Signal): Emitted when onJoin is called.  WAMP session is established
+        SessionLeft (QtCore.Signal): Emitted when onLeave is called. WAMP session is closed
+        SessionDisconnected (QtCore.Signal): Emitted when onDisconnect is called.      
     """
-    last_connection = None
+    last_session = None
 
     def __init__(self, *args, **kwargs):
-        if self.last_connection is not None:
-            raise ValueError("Can't have more than one connection at this time.")
         self._q_object = _QUserSessionSignals()
         self.SessionOpened = self._q_object.SessionOpened
         self.SessionConnect = self._q_object.SessionConnect
@@ -38,48 +44,40 @@ class QApplicationSession(ApplicationSession):
         self.SessionJoined = self._q_object.SessionJoined
         self.SessionLeft = self._q_object.SessionLeft
         super(QApplicationSession, self).__init__(*args, **kwargs)
-        QUserSession.last_connection = self
 
+        
     def onOpen(self, transport):
         """
         Callback fired when transport is open.
 
-        A WAMP transport is a bidirectional, full-duplex, reliable, ordered, message-based channel.
-
         Args:
-            transport (autobahn.wamp.interfaces.ITransport) - instance that implements ITransport
-            """
-        super(QApplicationSession, self).onConnect(transport)
-        self.SessionOpened.emit(self, transport)
+            transport (WampWebSocketClientProtocol) - WampWebSocketClientProtocol is the base class 
+                for Twisted-based WAMP-over-WebSocket client protocols.
 
+        """
+
+        super(QApplicationSession, self).onOpen(transport)
+        self.SessionOpened.emit(self, self.SessionOpened)
+    
     def onConnect(self):
         """
         Callback fired when the transport this session will run over has been established.
         """
         super(QApplicationSession, self).onConnect()
         self.SessionConnect.emit(self, State.CONNECTED)
-
-    
-    def onChallenge(self, challenge):
-        """
-        Callback fired when the peer demands authentication.
-        May return a Deferred/Future.
-
-        Args:
-            challenge (autobahn.wamp.types.Challenge.) - The authentication challenge.
-        """
-
+        
     def onJoin(self, details):
         """
         Callback fired when WAMP session has been established.
+
         May return a Deferred/Future.
 
         Args:
-            details (autobahn.wamp.types.SessionDetails.) - Session information.
+            details (autobahn.wamp.types.SessionDetails) - Provides details for a WAMP session upon open.
         """
+        QApplicationSession.last_session = self
         super(QApplicationSession, self).onJoin(details)
-        self.SessionJoined.emit(self, details)
-
+        
     def onLeave(self, details):
         """
         Callback fired when WAMP session has is closed
@@ -96,39 +94,4 @@ class QApplicationSession(ApplicationSession):
         """
 
         super(QApplicationSession, self).onDisconnect()
-        self.SessionDisconnectd.emit(self, State.DISCONNECTED)
-
-    def user_publish(self, topic, data):
-        """Publishes data to the user uri space of the realm..
-        
-        Appends 'com' and the username to the uri topic.
-
-        Args:
-            topic (unicode): The topic to be published.
-                Will be the end of the uri.
-            data (object): Data that can be published.
-        
-        """
-        uri = u"com.{username}.{topic}".format(
-            username=self._userid, topic=topic)
-        self.publish(uri, data)
-
-    
-
-    #def publish(self, topic, *args, **kwargs):
-    #    """
-    #    """
-
-    #def subscribe(self, handler, topic=None, options=None):
-    #    """
-    #    """
-
-    #def call(self, procedure, *args, **kwargs):
-    #    """
-    #    """
-
-    #def register(self, endpoint, procedure=None, options=None):
-    #    """
-    #    """
-
-
+        self.SessionDisconnectd.emit(self, State.DISCONNECTED)    
