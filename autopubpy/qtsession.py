@@ -1,4 +1,4 @@
-"""This module contains an application class that emits Qt Signals."""
+﻿"""This module contains an application class that emits Qt Signals."""
 from autobahn.twisted.wamp import ApplicationSession
 from autobahn.wamp.exception import ApplicationError
 from PySide import QtCore
@@ -47,8 +47,17 @@ class QApplicationSession(ApplicationSession):
 
         
     def onOpen(self, transport):
+        """
+        Callback fired when transport is open.
+
+        Args:
+            transport (WampWebSocketClientProtocol) - WampWebSocketClientProtocol is the base class 
+                for Twisted-based WAMP-over-WebSocket client protocols.
+
+        """
+
         super(QApplicationSession, self).onOpen(transport)
-        self.SessionOpened.emit(self, transport)
+        self.SessionOpened.emit(self, self.SessionOpened)
     
     def onConnect(self):
         """
@@ -58,6 +67,14 @@ class QApplicationSession(ApplicationSession):
         self.SessionConnect.emit(self, State.CONNECTED)
         
     def onJoin(self, details):
+        """
+        Callback fired when WAMP session has been established.
+
+        May return a Deferred/Future.
+
+        Args:
+            details (autobahn.wamp.types.SessionDetails) - Provides details for a WAMP session upon open.
+        """
         QApplicationSession.last_session = self
         super(QApplicationSession, self).onJoin(details)
         
