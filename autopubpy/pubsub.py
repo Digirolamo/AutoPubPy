@@ -5,6 +5,7 @@ Publisher models. The models in models.py are created using
 this module.
 
 """
+import contextlib
 import functools
 import types
 import weakref
@@ -64,7 +65,22 @@ class Publisher(object):
                            "Object {} is not subscribed.".format(type(subscriber)))
         self._subscribers.remove(subscriber)
 
-    def _on_sync_event(self, *args, **kwargs):
+    @contextlib.contextmanager
+    def block_propagation(self):
+        """
+        Context manager that prevents sync events from being
+        sent out by methods decorated with method_publish.
+
+        Example:
+            with synclist.block_propogation:
+                synclist.clear()
+        
+        """
+        self._propagate = False
+        yield
+        self._propagate = True
+
+    def _receive_sync_event(self, *args, **kwargs):
         """When published events are propagated from a synced instance
         in another session this method is called and we call
         the same method on this instance.
@@ -74,11 +90,8 @@ class Publisher(object):
             raise KeyError("kwargs must have 'method' key.")
         method_name = kwargs['method']
         method = getattr(self, method_name)
-        try:
-            self._propagate = False
+        with self.block_propagation():
             return method(*args)
-        finally:
-            self._propagate = True
 
     def as_json(self, json_string):
         """Reimpliment this method to get the state of the object."""
@@ -86,7 +99,7 @@ class Publisher(object):
 
     def set_json(self, json_string):
         """Reimpliment this method to set the state of the object."""
-        raise NotImplementedError("You must impliment as_json in a subclass.")
+        raise NotImplementedError("You must impliment set_json in a subclass.")
 
     @classmethod
     @inlineCallbacks
@@ -106,7 +119,7 @@ class Publisher(object):
         get_state_topic = topic + "." + cls.update_method
         print 'uri', get_state_topic
         yield session.register(getattr(instance, cls.update_method), get_state_topic)
-        yield session.subscribe(instance._on_sync_event, topic)  #pylint: disable=protected-access
+        yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
         returnValue(instance)
 
     @classmethod
@@ -124,7 +137,7 @@ class Publisher(object):
         if topic is None:
             topic = cls.topic
         instance = cls()
-        yield session.subscribe(instance._on_sync_event, topic)  #pylint: disable=protected-access
+        yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
         original_state_topic = topic + "." + cls.update_method
         json_string = yield session.call(original_state_topic)
         instance.set_json(json_string)

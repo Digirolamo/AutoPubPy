@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod
+﻿from abc import ABCMeta, abstractmethod
 import collections
 import copy
 import json
@@ -31,20 +31,20 @@ class JSONable(object):
     __metaclass__ = MetaJSON
 
 
-class JSONDict(Publisher, collections.MutableMapping, JSONable):
-    "test doc"
+class SyncDict(Publisher, collections.MutableMapping):
+    """An OrderedDict that can be synced across machines"""
     topic = 'com.dict'
     _protect_attributes = ['_propagate', '_subscribers', '_topic_prefix', '_container']
     def __init__(self, *args, **kwargs):
         self._container = collections.OrderedDict()
-        super(JSONDict, self).__init__(*args, **kwargs)
+        super(SyncDict, self).__init__(*args, **kwargs)
 
     def __getitem__(self, key):
         return self._container.__getitem__(key)
 
     def __getattr__(self, name):
         if name in self._protect_attributes:
-            return super(JSONDict, self).__getitem__(name)
+            return super(SyncDict, self).__getitem__(name)
         return self.__getitem__(name)
 
     @method_publish()
@@ -53,7 +53,7 @@ class JSONDict(Publisher, collections.MutableMapping, JSONable):
 
     def __setattr__(self, name, value):
         if name in self._protect_attributes:
-            return super(JSONDict, self).__setattr__(name, value)
+            return super(SyncDict, self).__setattr__(name, value)
         if not is_JSONable(value):
             raise ValueError("Value must be jsonable.")
         self.__setitem__(name, value)
@@ -72,23 +72,87 @@ class JSONDict(Publisher, collections.MutableMapping, JSONable):
         return self._container.__len__()
 
     def __repr__(self):
-        cls_name = self.__class__.__name__
-        json_string = self.as_json()
-        str = "{}.from_JSON({})".format(cls_name, json_string)
-        return str
+        return self._container.__repr__()
 
     def as_dict(self):
         return self._container
 
     def as_json(self):
-        payload = json_encoder.encode(self)
+        payload = json_encoder.encode(self._container)
         return payload
 
-    def set_JSON(self, json_string):
+    def set_json(self, json_string):
         self._container = json.loads(json_string, object_pairs_hook=collections.OrderedDict)
 
     @classmethod
     def from_JSON(cls, json_string):
         instance = cls()
-        instance.set_JSON(json_string)
+        instance.set_json(json_string)
         return instance
+
+class SyncList(Publisher, collections.MutableSequence):
+    """A class that can be used just like a list and publishes changes via the method_publish decorator
+
+    attributes:
+        container (list): The list object that is synced across machines
+        auto_publish (bool): if true changing the list will publish the list
+    """
+    def __init__(self, start=[], *args, **kwargs):
+        self._container = list(start)
+        super(SyncList, self).__init__(*args, **kwargs)
+        
+    def __getitem__(self, key):
+        return self._container.__getitem__(key)
+
+    @method_publish()
+    def __setitem__(self, key, value):
+        return self._container.__setitem__(key, value)
+
+    @method_publish()
+    def __delitem__(self, key):
+        return self._container.__delitem__(key)
+        
+    def __len__(self):
+        return len(self._container)
+    
+    def __repr__(self):
+        return repr(self._container)
+    
+    def __str__(self):
+        return str(self._container)
+    
+    @method_publish()
+    def insert(self, indx, v):
+        rtn = self._container.insert(indx, v)
+        return rtn
+    
+    @method_publish()
+    def sort(self, *args, **kwargs):
+        self._container.sort(*args, **kwargs)
+        
+    def as_json(self):
+        payload = json_encoder.encode(self._container)
+        return payload
+
+    def set_json(self, json_string):
+        """Reimpliment this method to set the state of the object."""
+        self._container = json.loads(json_string)
+
+    
+    def sync(self):
+        """Publishes the contents of the list to all current subscribers"""
+        self._sync_helper(self._container)
+        
+    @method_publish()
+    def _sync_helper(self, item):
+        item = list(item)
+        self._container = item[:]
+
+    def set_auto_publish(self, v):
+        """set this object to publish any changes to it automatically.
+
+        args:
+            v (bool): the mode auto publish
+        """
+        self._auto_publish = v
+
