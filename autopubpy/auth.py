@@ -192,7 +192,7 @@ class ClientAuthComponent(ApplicationSession):
         uri = self.create_topic_uri(topic)
         self.publish(uri, data)
 
-    def user_publish(self, handler, topic):
+    def user_subscribe(self, handler, topic):
         """Subscribes to events in the user id uri space of the realm.
         
         Args:
