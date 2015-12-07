@@ -137,22 +137,3 @@ class SyncList(Publisher, collections.MutableSequence):
     def set_json(self, json_string):
         """Reimpliment this method to set the state of the object."""
         self._container = json.loads(json_string)
-
-    
-    def sync(self):
-        """Publishes the contents of the list to all current subscribers"""
-        self._sync_helper(self._container)
-        
-    @method_publish()
-    def _sync_helper(self, item):
-        item = list(item)
-        self._container = item[:]
-
-    def set_auto_publish(self, v):
-        """set this object to publish any changes to it automatically.
-
-        args:
-            v (bool): the mode auto publish
-        """
-        self._auto_publish = v
-

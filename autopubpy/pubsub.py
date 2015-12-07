@@ -94,6 +94,13 @@ class Publisher(object):
         with self.block_propagation():
             return method(*args)
 
+    def broadcast_sync(self):
+        """Publishes a entire sync event to all current subscribers."""
+        @method_publish()
+        def set_json(self, json_string):
+            pass
+        set_json(self, self.as_json())
+        
     def as_json(self, json_string):
         """Reimpliment this method to get the state of the object."""
         raise NotImplementedError("You must impliment as_json in a subclass.")
@@ -114,6 +121,7 @@ class Publisher(object):
         print 'uri', get_state_topic
         yield session.register(getattr(instance, cls.update_method), get_state_topic)
         yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
+        self.broadcast_sync()
         returnValue(instance)
 
     @classmethod
@@ -136,6 +144,19 @@ class Publisher(object):
         yield session.register(getattr(instance, cls.update_method), get_state_topic)
         yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
         returnValue(instance)
+
+    @inlineCallbacks
+    def set_client_session(self, session):
+        cls = self.__class__
+        topic = cls.topic
+        instance = self
+        yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
+        original_state_topic = topic + "." + cls.update_method
+        json_string = yield session.call(original_state_topic)
+        instance.set_json(json_string)
+        yield instance.subscribe(session)
+        returnValue(instance)
+
 
     @classmethod
     @inlineCallbacks
