@@ -140,4 +140,4 @@ class SyncList(Publisher, collections.MutableSequence):
 
     def set_json(self, json_string):
         """Reimpliment this method to set the state of the object."""
-        self._container = json.loads(json_string)
+        self._container = self.list_factory(json.loads(json_string))
