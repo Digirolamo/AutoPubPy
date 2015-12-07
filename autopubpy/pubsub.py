@@ -9,6 +9,7 @@ import contextlib
 import functools
 import types
 import weakref
+from autobahn.wamp.exception import TransportLost
 from autobahn.wamp.types import PublishOptions
 from twisted.internet.defer import inlineCallbacks, returnValue
 
@@ -219,7 +220,12 @@ def method_publish(topic=u"", options=PublishOptions()):
                     pub_topic = "{base}.{topic}".format(base=self.topic, topic=topic)
                     print pub_topic, self, args, kwargs
                 for subscriber in self.subscribers:
-                    subscriber.publish(pub_topic, *args, **kwargs)
+                    try:
+                        subscriber.publish(pub_topic, *args, **kwargs)
+                    except TransportLost as e:
+                        print e
+                    except Exception as e:
+                        print e
             return return_value
         return publish_after
     return publish_decorator

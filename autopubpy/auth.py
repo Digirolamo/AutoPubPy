@@ -153,6 +153,15 @@ class ClientAuthComponent(ApplicationSession):
             raise ValueError("Can only respond to ticket, not "
                              "{}".format(challenge.method))
 
+    def get_base_uri(self):
+        """Gets the base username formated uri."""
+        base_topic = self.topic
+        if base_topic:
+            base_topic += u'.'
+        uri = u"{base_topic}{username}".format(
+            base_topic=base_topic,
+            username=self._userid)
+        return uri
 
     def create_topic_uri(self, topic):
         """Get the username formated uri of a topic.
@@ -166,13 +175,11 @@ class ClientAuthComponent(ApplicationSession):
             unicode: The full uri.
 
         """
-        base_topic = self.topic
-        if base_topic:
-            base_topic += u'.'
-        uri = u"{base_topic}{username}.{topic}".format(
-            base_topic=base_topic,
-            username=self._userid,
+        base_uri = self.get_base_uri()
+        uri = u"{base_uri}.{topic}".format(
+            base_uri=base_uri,
             topic=topic)
+        return uri
 
     def user_publish(self, topic, data):
         """Publishes data to the user id uri space of the realm.
