@@ -4,11 +4,6 @@ from autobahn.wamp.exception import ApplicationError
 from PySide import QtCore
 from twisted.internet.defer import inlineCallbacks
 
-class State(object):
-    """The state of a websocket connection."""
-    DISCONNECTED = 0
-    WAITING = 1
-    CONNECTED = 2
 
 class _QUserSessionSignals(QtCore.QObject):
     """Used for wrapping signal. Hard to mix in Twisted
@@ -19,16 +14,17 @@ class _QUserSessionSignals(QtCore.QObject):
     SessionJoined = QtCore.Signal(object, object)
     SessionLeft = QtCore.Signal(object, object)
 
+
 class QApplicationSession(ApplicationSession):
     """
-    Allows Qt signals to be emitted with Autobahn ApplicationSession method calls, the problem with
+    Allows Qt signals to be emitted with Autobahn ApplicationSession method calls, the problem with#
     having this inherit from QObject is the two classes have methods with the same name making it 
     messy trying to mix the two
 
     At least for ipython, it won't create a session if this as an __ini__ method
 
     Attributes:
-        SessionOpened (QtCore.Signal): Emitted when a transport is opened?
+        SessionOpened (QtCore.Signal): Emitted when a transport is opened.
         SessionConnect (QtCore.Signal): Emitted when onConnect is called.
         SessionJoined (QtCore.Signal): Emitted when onJoin is called.  WAMP session is established
         SessionLeft (QtCore.Signal): Emitted when onLeave is called. WAMP session is closed
@@ -64,7 +60,7 @@ class QApplicationSession(ApplicationSession):
         Callback fired when the transport this session will run over has been established.
         """
         super(QApplicationSession, self).onConnect()
-        self.SessionConnect.emit(self, State.CONNECTED)
+        self.SessionConnect.emit(self)
         
     def onJoin(self, details):
         """
@@ -94,4 +90,4 @@ class QApplicationSession(ApplicationSession):
         """
 
         super(QApplicationSession, self).onDisconnect()
-        self.SessionDisconnectd.emit(self, State.DISCONNECTED)    
+        self.SessionDisconnectd.emit(self)    
