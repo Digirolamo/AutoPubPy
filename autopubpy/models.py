@@ -97,8 +97,12 @@ class SyncList(Publisher, collections.MutableSequence):
         container (list): The list object that is synced across machines
         auto_publish (bool): if true changing the list will publish the list
     """
-    def __init__(self, start=[], *args, **kwargs):
-        self._container = list(start)
+    list_factory = list
+    def __init__(self, data=None, *args, **kwargs):
+        if data is None:
+            self._container = self.list_factory()
+        else:
+            self._container = self.list_factory(start)
         super(SyncList, self).__init__(*args, **kwargs)
         
     def __getitem__(self, key):
