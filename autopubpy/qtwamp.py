@@ -57,7 +57,7 @@ class _QApplicationSessionSignals(QtCore.QObject):
     and Qt classes because they share method names. This is a wrapper."""
     SessionOpened = QtCore.Signal(object, object)
     SessionConnected = QtCore.Signal(object)
-    SessionJoined = QtCore.Signal(object)
+    SessionJoined = QtCore.Signal(object, object)
     SessionLeft = QtCore.Signal(object, object)
     SessionDisconnected = QtCore.Signal(object, object)
 
@@ -87,6 +87,7 @@ class QApplicationSession(ApplicationSession):
     last_session = None
 
     def __init__(self, *args, **kwargs):
+        QApplicationSession.last_session = last_session
         self._q_object = _QApplicationSessionSignals()
         self.SessionOpened = self._q_object.SessionOpened
         self.SessionConnected = self._q_object.SessionConnected
@@ -124,9 +125,8 @@ class QApplicationSession(ApplicationSession):
         Args:
             details (autobahn.wamp.types.SessionDetails) - Provides details for a WAMP session upon open.
         """
-        QApplicationSession.last_session = self
         super(QApplicationSession, self).onJoin(details)
-        self.SessionJoined.emit(self)
+        self.SessionJoined.emit(self, details)
 
     def onLeave(self, details):
         """

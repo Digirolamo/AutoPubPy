@@ -102,6 +102,20 @@ class Publisher(object):
         """Reimpliment this method to set the state of the object."""
         raise NotImplementedError("You must impliment set_json in a subclass.")
 
+    @inlineCallbacks
+    def set_main_session(self, session):
+        """Sets the main session of the Sync list, basically
+        the mothership server."""
+        cls = self.__class__
+        topic = cls.topic
+        instance = self
+        yield instance.subscribe(session)
+        get_state_topic = topic + "." + cls.update_method
+        print 'uri', get_state_topic
+        yield session.register(getattr(instance, cls.update_method), get_state_topic)
+        yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
+        returnValue(instance)
+
     @classmethod
     @inlineCallbacks
     def create_new(cls, session, topic=None):
