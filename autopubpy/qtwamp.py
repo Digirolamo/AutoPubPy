@@ -59,7 +59,7 @@ class _QApplicationSessionSignals(QtCore.QObject):
     SessionConnected = QtCore.Signal(object)
     SessionJoined = QtCore.Signal(object, object)
     SessionLeft = QtCore.Signal(object, object)
-    SessionDisconnected = QtCore.Signal(object, object)
+    SessionDisconnected = QtCore.Signal(object)
 
 
 class QApplicationSession(ApplicationSession):
@@ -87,7 +87,7 @@ class QApplicationSession(ApplicationSession):
     last_session = None
 
     def __init__(self, *args, **kwargs):
-        QApplicationSession.last_session = last_session
+        QApplicationSession.last_session = self
         self._q_object = _QApplicationSessionSignals()
         self.SessionOpened = self._q_object.SessionOpened
         self.SessionConnected = self._q_object.SessionConnected
