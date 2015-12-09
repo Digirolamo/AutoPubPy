@@ -68,9 +68,6 @@ class QApplicationSession(ApplicationSession):
     having this inherit from QObject is the two classes have methods with the same name making it 
     messy trying to mix the two
 
-    At least for ipython, it won't create a session if this as an __ini__ method
-
-
     Class Signals (QtCore.Signal):
         SessionCreated (QtCore.Signal): Emitted when session instance is created.
 
