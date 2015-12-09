@@ -101,7 +101,7 @@ class Publisher(object):
             pass
         set_json(self, self.as_json())
         
-    def as_json(self, json_string):
+    def as_json(self):
         """Reimpliment this method to get the state of the object."""
         raise NotImplementedError("You must impliment as_json in a subclass.")
 
