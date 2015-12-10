@@ -270,7 +270,7 @@ def method_publish(topic=u"", options=PublishOptions()):
             #print self, len(self.subscribers), self.subscribers
             if self._propagate:  #pylint: disable=protected-access
                 if not topic:
-                    pub_topic = self.topic
+                    pub_topic = self.uri
                 else:
                     pub_topic = "{base}.{topic}".format(base=self.uri, topic=topic)
                     print pub_topic, self, args, kwargs
