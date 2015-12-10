@@ -31,11 +31,13 @@ class Publisher(object):
     __metaclass__ = abc.ABCMeta
     base_uri = 'com'
 
-    def __init__(self, base_uri=u"", name=u""):
+    def __init__(self, base_uri=None, name=u""):
         self._connected = False
         self._object_name = name
         self._propagate = True
         self._subscribers = weakref.WeakSet()
+        if base_uri is not None:
+            self.base_uri = base_uri
         self.set_base_uri(self.base_uri)
 
     @abc.abstractmethod
@@ -94,6 +96,7 @@ class Publisher(object):
         """
         if self._connected:
             raise ValueError("Cannot change uri after object is connected.")
+        self.base_uri = base_uri
         self._uri = base_uri
         if self._object_name:
             if self._uri:
