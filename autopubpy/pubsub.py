@@ -29,16 +29,14 @@ class Publisher(object):
         
     """
     __metaclass__ = abc.ABCMeta
-    base_uri = 'com'
+    base_uri = None
 
-    def __init__(self, base_uri=None, name=u""):
+    def __init__(self, base_uri='com', name=u""):
         self._connected = False
         self._object_name = name
         self._propagate = True
         self._subscribers = weakref.WeakSet()
-        if base_uri is not None:
-            self.base_uri = base_uri
-        self.set_base_uri(self.base_uri)
+        self.set_base_uri(base_uri)
 
     @abc.abstractmethod
     def as_json(self):
