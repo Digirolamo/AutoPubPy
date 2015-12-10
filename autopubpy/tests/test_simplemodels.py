@@ -1,11 +1,11 @@
-﻿from autopubpy.pubsub import Publisher, method_publish
-from autopubpy.models import json_encoder
-import json
-from autobahn.twisted.wamp import ApplicationSession
+﻿from __future__ import unicode_literals
+import pytest
+import autopubpy.models
 
-
-import collections
-
+def test_offline_one():
+    test_list = autopubpy.models.SyncList()
+    test_dict = autopubpy.models.SyncDict()
+    test_ordereddict = autopubpy.models.SyncOrderedDict()
 
 
 """
@@ -28,3 +28,11 @@ class TestSession3(ApplicationSession):
         self.syncing_string = SyncString.create_from_server(self)
         self.syncing_string.set_string('kyle')
 """
+
+if __name__ == "__main__":
+    import pytest
+    options = ['-s']
+    dirs = [__file__]
+    arguments = options + dirs
+    exitcode = pytest.main(arguments)
+    raw_input()
