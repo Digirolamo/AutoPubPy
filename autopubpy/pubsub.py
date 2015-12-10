@@ -23,7 +23,7 @@ class Publisher(object):
     "method_publish" decorator on methods that set the state of the object.
 
     Attributes:
-        base_uri (unicode): The base URI of publish events.
+        
         name (unicode): The name of the object, it will be appened at the end of the URI
             for publishing events.
         
@@ -32,28 +32,12 @@ class Publisher(object):
     base_uri = 'com'
 
     def __init__(self, base_uri=u"", name=u""):
-        self._uri = self.base_uri
-        if name:
-            if self._uri:
-                self._uri += u'.'
-            self._uri += name
+        self._object_name = name
+        self.set_base_uri(self.base_uri)
+        self._connected = False
         self._propagate = True
         self._subscribers = weakref.WeakSet()
 
-    @property
-    def uri(self):
-        """unicode: The base uri of this object.
-
-        """
-        return self._uri
-
-    @property
-    def subscribers(self):
-        """generator(session): Returns a generator of the
-        subscribed sessions.
-
-        """
-        return (session for session in self._subscribers)
 
     @abc.abstractmethod
     def as_json(self):
@@ -83,6 +67,39 @@ class Publisher(object):
 
         """
         raise NotImplementedError("You must impliment set_json in a subclass.")
+
+    @property
+    def uri(self):
+        """unicode: The base uri of this object.
+
+        """
+        return self._uri
+
+    @property
+    def subscribers(self):
+        """generator(session): Returns a generator of the
+        subscribed sessions.
+
+        """
+        return (session for session in self._subscribers)
+
+    def set_base_uri(self, base_uri):
+        """Sets the uri for events of this class.
+
+        Args:
+            base_uri (unicode): The base URI of publish events.
+
+        Raises:
+            ValueError: If already connected.
+
+        """
+        if self._connected:
+            raise ValueError("Cannot change uri after object is connected.")
+        self._uri = base_uri
+        if self._object_name:
+            if self._uri:
+                self._uri += u'.'
+            self._uri += self._object_name
 
     def subscribe(self, session):
         """Add a session to the subscriber set.
@@ -159,6 +176,7 @@ class Publisher(object):
         yield session.register(getattr(self, update_method_name), get_state_topic)
         yield session.subscribe(self._receive_sync_event, self.uri)  #pylint: disable=protected-access
         self.broadcast_sync()
+        self._connected = True  #pylint: disable=protected-access
         returnValue(self)
 
     @inlineCallbacks
@@ -177,6 +195,7 @@ class Publisher(object):
         json_string = yield session.call(original_state_topic)
         self.set_json(json_string)
         yield self.subscribe(session)
+        self._connected = True  #pylint: disable=protected-access
         returnValue(self)
 
 
