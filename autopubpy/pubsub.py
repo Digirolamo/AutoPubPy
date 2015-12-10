@@ -5,6 +5,7 @@ Publisher models. The models in models.py are created using
 this module.
 
 """
+import abc
 import contextlib
 import functools
 import types
@@ -15,24 +16,64 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 
 
 class Publisher(object):
-    """
+    """Abstract class of a publishing data structure.
 
     Subclass this object to create datatypes that publish method calls to
-    various sessions.
+    various sessions. Impliment the abstract methods, and use the 
+    "method_publish" decorator on methods that set the state of the object.
 
     Attributes:
-        topic (unicode): The base URI of publish events.
-        update_method (unicode): The name of the method you use to set
-            the state of an instance. Default is as_json.
-
+        
+        name (unicode): The name of the object, it will be appened at the end of the URI
+            for publishing events.
+        
     """
-    topic = 'com'
-    update_method = "as_json"
+    __metaclass__ = abc.ABCMeta
+    base_uri = 'com'
 
-    def __init__(self):
+    def __init__(self, base_uri=u"", name=u""):
+        self._object_name = name
+        self.set_base_uri(self.base_uri)
+        self._connected = False
         self._propagate = True
-        self._topic_prefix = u"com.myapp.{}".format(unicode(id(self)))
         self._subscribers = weakref.WeakSet()
+
+
+    @abc.abstractmethod
+    def as_json(self):
+        """Reimpliment this method to get the state of the object.
+        
+        Example:
+            def as_json(self):
+                payload = json_encoder.encode(self._container)
+                return payload
+
+        Returns:
+            unicode: The json representation of the object
+        """
+        raise NotImplementedError("You must impliment as_json in a subclass.")
+
+    @abc.abstractmethod
+    def set_json(self, json_string):
+        """Reimpliment this method to set the state of the object.
+        
+        Args:
+            json_string (unicode): The JSON state of the object, the format should
+                match the as_json implimentation.
+
+        Example:
+            def set_json(self, json_string):
+                self._container = json.loads(json_string, object_pairs_hook=collections.OrderedDict)
+
+        """
+        raise NotImplementedError("You must impliment set_json in a subclass.")
+
+    @property
+    def uri(self):
+        """unicode: The base uri of this object.
+
+        """
+        return self._uri
 
     @property
     def subscribers(self):
@@ -41,6 +82,24 @@ class Publisher(object):
 
         """
         return (session for session in self._subscribers)
+
+    def set_base_uri(self, base_uri):
+        """Sets the uri for events of this class.
+
+        Args:
+            base_uri (unicode): The base URI of publish events.
+
+        Raises:
+            ValueError: If already connected.
+
+        """
+        if self._connected:
+            raise ValueError("Cannot change uri after object is connected.")
+        self._uri = base_uri
+        if self._object_name:
+            if self._uri:
+                self._uri += u'.'
+            self._uri += self._object_name
 
     def subscribe(self, session):
         """Add a session to the subscriber set.
@@ -101,84 +160,43 @@ class Publisher(object):
             pass
         set_json(self, self.as_json())
         
-    def as_json(self, json_string):
-        """Reimpliment this method to get the state of the object."""
-        raise NotImplementedError("You must impliment as_json in a subclass.")
-
-    def set_json(self, json_string):
-        """Reimpliment this method to set the state of the object."""
-        raise NotImplementedError("You must impliment set_json in a subclass.")
-
     @inlineCallbacks
     def set_main_session(self, session):
         """Sets the main session of the Sync list, basically
-        the mothership server."""
-        cls = self.__class__
-        topic = cls.topic
-        instance = self
-        yield instance.subscribe(session)
-        get_state_topic = topic + "." + cls.update_method
-        print 'uri', get_state_topic
-        yield session.register(getattr(instance, cls.update_method), get_state_topic)
-        yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
-        self.broadcast_sync()
-        returnValue(instance)
-
-    @classmethod
-    @inlineCallbacks
-    def create_new(cls, session, topic=None):
-        """Creates a new Publisher instance to be used with the session.
-
+        the mothership server.
+        
         Args:
-            session (ApplicationSession): The subscribing session to remove.
-            topic (unicode): The base URI of publish events.
-                If topic is None, use the cls.topic string.
-
+            session (ApplicationSession): The twisted session connected
+                to the router.
+        
         """
-        if topic is None:
-            topic = cls.topic
-        instance = cls()
-        yield instance.subscribe(session)
-        get_state_topic = topic + "." + cls.update_method
-        print 'uri', get_state_topic
-        yield session.register(getattr(instance, cls.update_method), get_state_topic)
-        yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
-        returnValue(instance)
+        yield self.subscribe(session)
+        update_method_name = self.as_json.__name__
+        get_state_topic = self.uri + "." + update_method_name
+        yield session.register(getattr(self, update_method_name), get_state_topic)
+        yield session.subscribe(self._receive_sync_event, self.uri)  #pylint: disable=protected-access
+        self.broadcast_sync()
+        self._connected = True  #pylint: disable=protected-access
+        returnValue(self)
 
     @inlineCallbacks
     def set_client_session(self, session):
-        cls = self.__class__
-        topic = cls.topic
-        instance = self
-        yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
-        original_state_topic = topic + "." + cls.update_method
-        json_string = yield session.call(original_state_topic)
-        instance.set_json(json_string)
-        yield instance.subscribe(session)
-        returnValue(instance)
-
-
-    @classmethod
-    @inlineCallbacks
-    def create_from_server(cls, session, topic=None):
-        """Creates a Publisher instance from another session and
-        sets the initial state to match.
-
+        """Sets a client session of the data stcuture.
+        
         Args:
-            session (ApplicationSession): The subscribing session to remove.
-            topic (unicode): The base URI of publish events.
-                If topic is None, use the cls.topic string.
-
+            session (ApplicationSession): The twisted session connected
+                to the router.
+        
         """
-        if topic is None:
-            topic = cls.topic
-        instance = cls()
-        yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
-        original_state_topic = topic + "." + cls.update_method
+
+        yield session.subscribe(self._receive_sync_event, self.uri)  #pylint: disable=protected-access
+        update_method_name = self.as_json.__name__
+        original_state_topic = self.uri + "." + update_method_name
         json_string = yield session.call(original_state_topic)
-        instance.set_json(json_string)
-        yield instance.subscribe(session)
-        returnValue(instance)
+        self.set_json(json_string)
+        yield self.subscribe(session)
+        self._connected = True  #pylint: disable=protected-access
+        returnValue(self)
 
 
 def method_publish(topic=u"", options=PublishOptions()):
@@ -252,7 +270,7 @@ def method_publish(topic=u"", options=PublishOptions()):
                 if not topic:
                     pub_topic = self.topic
                 else:
-                    pub_topic = "{base}.{topic}".format(base=self.topic, topic=topic)
+                    pub_topic = "{base}.{topic}".format(base=self.uri, topic=topic)
                     print pub_topic, self, args, kwargs
                 for subscriber in self.subscribers:
                     try:
