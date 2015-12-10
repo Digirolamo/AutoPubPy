@@ -147,31 +147,38 @@ class Publisher(object):
     @inlineCallbacks
     def set_main_session(self, session):
         """Sets the main session of the Sync list, basically
-        the mothership server."""
-        cls = self.__class__
-        topic = cls.topic
-        instance = self
-        yield instance.subscribe(session)
-        update_method_name = cls.as_json.__name__
-        get_state_topic = topic + "." + update_method_name
-        print 'uri', get_state_topic
-        yield session.register(getattr(instance, update_method_name), get_state_topic)
-        yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
+        the mothership server.
+        
+        Args:
+            session (ApplicationSession): The twisted session connected
+                to the router.
+        
+        """
+        yield self.subscribe(session)
+        update_method_name = self.as_json.__name__
+        get_state_topic = self.uri + "." + update_method_name
+        yield session.register(getattr(self, update_method_name), get_state_topic)
+        yield session.subscribe(self._receive_sync_event, self.uri)  #pylint: disable=protected-access
         self.broadcast_sync()
-        returnValue(instance)
+        returnValue(self)
 
     @inlineCallbacks
     def set_client_session(self, session):
-        cls = self.__class__
-        topic = cls.topic
-        instance = self
-        yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
-        update_method_name = cls.as_json.__name__
-        original_state_topic = topic + "." + update_method_name
+        """Sets a client session of the data stcuture.
+        
+        Args:
+            session (ApplicationSession): The twisted session connected
+                to the router.
+        
+        """
+
+        yield session.subscribe(self._receive_sync_event, self.uri)  #pylint: disable=protected-access
+        update_method_name = self.as_json.__name__
+        original_state_topic = self.uri + "." + update_method_name
         json_string = yield session.call(original_state_topic)
-        instance.set_json(json_string)
-        yield instance.subscribe(session)
-        returnValue(instance)
+        self.set_json(json_string)
+        yield self.subscribe(session)
+        returnValue(self)
 
 
 def method_publish(topic=u"", options=PublishOptions()):
@@ -245,7 +252,7 @@ def method_publish(topic=u"", options=PublishOptions()):
                 if not topic:
                     pub_topic = self.topic
                 else:
-                    pub_topic = "{base}.{topic}".format(base=self.topic, topic=topic)
+                    pub_topic = "{base}.{topic}".format(base=self.uri, topic=topic)
                     print pub_topic, self, args, kwargs
                 for subscriber in self.subscribers:
                     try:
