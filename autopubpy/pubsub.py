@@ -32,12 +32,11 @@ class Publisher(object):
     base_uri = 'com'
 
     def __init__(self, base_uri=u"", name=u""):
-        self._object_name = name
-        self.set_base_uri(self.base_uri)
         self._connected = False
+        self._object_name = name
         self._propagate = True
         self._subscribers = weakref.WeakSet()
-
+        self.set_base_uri(self.base_uri)
 
     @abc.abstractmethod
     def as_json(self):
