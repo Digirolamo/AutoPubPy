@@ -91,9 +91,11 @@ class Publisher(object):
             base_uri (unicode): The base URI of publish events.
 
         Raises:
-            ValueError: If already connected.
+            ValueError: If already connected and a new base is set.
 
         """
+        if self.base_uri == base_uri:
+            return
         if self._connected:
             raise ValueError("Cannot change uri after object is connected.")
         self.base_uri = base_uri
