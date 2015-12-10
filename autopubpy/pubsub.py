@@ -78,9 +78,8 @@ class Publisher(object):
                 match the as_json implimentation.
 
         Example:
-            def as_json(self):
-                payload = json_encoder.encode(self._container)
-                return payload
+            def set_json(self, json_string):
+                self._container = json.loads(json_string, object_pairs_hook=collections.OrderedDict)
 
         """
         raise NotImplementedError("You must impliment set_json in a subclass.")

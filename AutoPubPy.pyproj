@@ -22,7 +22,18 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="autopubpy\auth.py" />
-    <Compile Include="autopubpy\models.py" />
+    <Compile Include="autopubpy\models\basemodel.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="autopubpy\models\syncdict.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="autopubpy\models\synclist.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="autopubpy\models\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="autopubpy\pubsub.py" />
     <Compile Include="autopubpy\qtwamp.py">
       <SubType>Code</SubType>
@@ -38,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="autopubpy\" />
+    <Folder Include="autopubpy\models\" />
     <Folder Include="autopubpy\tests\" />
   </ItemGroup>
   <ItemGroup>
