@@ -24,19 +24,14 @@ class Publisher(object):
 
     Attributes:
         base_uri (unicode): The base URI of publish events.
-        update_method (unicode): The name of the method you use to set
-            the state of an instance. Default is as_json.
-
-    Args:
-        name: The name of the object, it will be appened at the end of the URI
+        name (unicode): The name of the object, it will be appened at the end of the URI
             for publishing events.
-
+        
     """
     __metaclass__ = abc.ABCMeta
     base_uri = 'com'
-    update_method = "as_json"
 
-    def __init__(self, name=u"", base_uri=u""):
+    def __init__(self, base_uri=u"", name=u""):
         self._uri = self.base_uri
         if name:
             if self._uri:
@@ -157,32 +152,12 @@ class Publisher(object):
         topic = cls.topic
         instance = self
         yield instance.subscribe(session)
-        get_state_topic = topic + "." + cls.update_method
+        update_method_name = cls.as_json.__name__
+        get_state_topic = topic + "." + update_method_name
         print 'uri', get_state_topic
-        yield session.register(getattr(instance, cls.update_method), get_state_topic)
+        yield session.register(getattr(instance, update_method_name), get_state_topic)
         yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
         self.broadcast_sync()
-        returnValue(instance)
-
-    @classmethod
-    @inlineCallbacks
-    def create_new(cls, session, topic=None):
-        """Creates a new Publisher instance to be used with the session.
-
-        Args:
-            session (ApplicationSession): The subscribing session to remove.
-            topic (unicode): The base URI of publish events.
-                If topic is None, use the cls.topic string.
-
-        """
-        if topic is None:
-            topic = cls.topic
-        instance = cls()
-        yield instance.subscribe(session)
-        get_state_topic = topic + "." + cls.update_method
-        print 'uri', get_state_topic
-        yield session.register(getattr(instance, cls.update_method), get_state_topic)
-        yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
         returnValue(instance)
 
     @inlineCallbacks
@@ -191,30 +166,8 @@ class Publisher(object):
         topic = cls.topic
         instance = self
         yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
-        original_state_topic = topic + "." + cls.update_method
-        json_string = yield session.call(original_state_topic)
-        instance.set_json(json_string)
-        yield instance.subscribe(session)
-        returnValue(instance)
-
-
-    @classmethod
-    @inlineCallbacks
-    def create_from_server(cls, session, topic=None):
-        """Creates a Publisher instance from another session and
-        sets the initial state to match.
-
-        Args:
-            session (ApplicationSession): The subscribing session to remove.
-            topic (unicode): The base URI of publish events.
-                If topic is None, use the cls.topic string.
-
-        """
-        if topic is None:
-            topic = cls.topic
-        instance = cls()
-        yield session.subscribe(instance._receive_sync_event, topic)  #pylint: disable=protected-access
-        original_state_topic = topic + "." + cls.update_method
+        update_method_name = cls.as_json.__name__
+        original_state_topic = topic + "." + update_method_name
         json_string = yield session.call(original_state_topic)
         instance.set_json(json_string)
         yield instance.subscribe(session)
