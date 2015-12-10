@@ -5,6 +5,7 @@ Publisher models. The models in models.py are created using
 this module.
 
 """
+import abc
 import contextlib
 import functools
 import types
@@ -15,24 +16,41 @@ from twisted.internet.defer import inlineCallbacks, returnValue
 
 
 class Publisher(object):
-    """
+    """Abstract class of a publishing data structure.
 
     Subclass this object to create datatypes that publish method calls to
-    various sessions.
+    various sessions. Impliment the abstract methods, and use the 
+    "method_publish" decorator on methods that set the state of the object.
 
     Attributes:
-        topic (unicode): The base URI of publish events.
+        base_uri (unicode): The base URI of publish events.
         update_method (unicode): The name of the method you use to set
             the state of an instance. Default is as_json.
 
+    Args:
+        name: The name of the object, it will be appened at the end of the URI
+            for publishing events.
+
     """
-    topic = 'com'
+    __metaclass__ = abc.ABCMeta
+    base_uri = 'com'
     update_method = "as_json"
 
-    def __init__(self):
+    def __init__(self, name=u"", base_uri=u""):
+        self._uri = self.base_uri
+        if name:
+            if self._uri:
+                self._uri += u'.'
+            self._uri += name
         self._propagate = True
-        self._topic_prefix = u"com.myapp.{}".format(unicode(id(self)))
         self._subscribers = weakref.WeakSet()
+
+    @property
+    def uri(self):
+        """unicode: The base uri of this object.
+
+        """
+        return self._uri
 
     @property
     def subscribers(self):
@@ -41,6 +59,36 @@ class Publisher(object):
 
         """
         return (session for session in self._subscribers)
+
+    @abc.abstractmethod
+    def as_json(self):
+        """Reimpliment this method to get the state of the object.
+        
+        Example:
+            def as_json(self):
+                payload = json_encoder.encode(self._container)
+                return payload
+
+        Returns:
+            unicode: The json representation of the object
+        """
+        raise NotImplementedError("You must impliment as_json in a subclass.")
+
+    @abc.abstractmethod
+    def set_json(self, json_string):
+        """Reimpliment this method to set the state of the object.
+        
+        Args:
+            json_string (unicode): The JSON state of the object, the format should
+                match the as_json implimentation.
+
+        Example:
+            def as_json(self):
+                payload = json_encoder.encode(self._container)
+                return payload
+
+        """
+        raise NotImplementedError("You must impliment set_json in a subclass.")
 
     def subscribe(self, session):
         """Add a session to the subscriber set.
@@ -101,14 +149,6 @@ class Publisher(object):
             pass
         set_json(self, self.as_json())
         
-    def as_json(self):
-        """Reimpliment this method to get the state of the object."""
-        raise NotImplementedError("You must impliment as_json in a subclass.")
-
-    def set_json(self, json_string):
-        """Reimpliment this method to set the state of the object."""
-        raise NotImplementedError("You must impliment set_json in a subclass.")
-
     @inlineCallbacks
     def set_main_session(self, session):
         """Sets the main session of the Sync list, basically
