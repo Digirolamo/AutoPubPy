@@ -1,4 +1,4 @@
-"""This module contains the list implimentation of
+﻿"""This module contains the list implimentation of
 Publisher.
 
 """
@@ -67,5 +67,5 @@ class SyncList(Publisher, collections.MutableSequence):
     def set_json(self, json_string):
         container = json.loads(json_string)
         if not isinstance(container, self.list_factory):
-            conntainer = self.list_factory(container)
-        self._container = conntainer
+            container = self.list_factory(container)
+        self._container = container
