@@ -277,6 +277,7 @@ def method_publish(topic=u"", options=PublishOptions()):
                 for subscriber in self.subscribers:
                     try:
                         subscriber.publish(pub_topic, *args, **kwargs)
+                        print "Pub topic", pub_topic
                     except TransportLost as e:
                         print e
                     except Exception as e:

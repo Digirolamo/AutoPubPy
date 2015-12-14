@@ -1,4 +1,4 @@
-"""This module contains the dictionary implimentations of
+﻿"""This module contains the dictionary implimentations of
 Publisher.
 
 """
@@ -61,8 +61,8 @@ class SyncDict(Publisher, collections.MutableMapping):
     def set_json(self, json_string):
         container = json.loads(json_string)
         if not isinstance(container, self.dict_factory):
-            conntainer = self.dict_factory(container)
-        self._container = conntainer
+            container = self.dict_factory(container)
+        self._container = container
 
     @classmethod
     def from_JSON(cls, json_string):
@@ -80,8 +80,8 @@ class SyncOrderedDict(SyncDict):
     def set_json(self, json_string):
         container = json.loads(json_string, object_pairs_hook=collections.OrderedDict)
         if not isinstance(container, self.dict_factory):
-            conntainer = self.dict_factory(container)
-        self._container = conntainer
+            container = self.dict_factory(container)
+        self._container = container
 
 """
 class _SyncDictNameSpace(Publisher, collections.MutableMapping):
