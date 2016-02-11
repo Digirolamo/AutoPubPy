@@ -38,13 +38,13 @@ class QApplicationRunner(ApplicationRunner):
         defered.addCallback(self.created_session)
         return defered
 
-    def created_session(self, *args):
+    def created_session(self, result):
         """If we create the session, emit a signal."""
-        self._q_object.CreatedSession.emit()
+        self.CreatedSession.emit(result)
 
-    def failed_to_create_session(self, *args):
+    def failed_to_create_session(self, failure):
         """If we never create the session, emit a signal."""
-        self._q_object.FailedCreatingSession.emit()
+        self.FailedCreatingSession.emit(self, failure)
 
 class _QApplicationSessionClassSignals(QtCore.QObject):
     """Used for wrapping signal. Hard to mix in Twisted
