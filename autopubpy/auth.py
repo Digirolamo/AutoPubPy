@@ -190,7 +190,7 @@ class ClientAuthComponent(ApplicationSession):
         
         """
         uri = self.create_topic_uri(topic)
-        self.publish(uri, *data)
+        return self.publish(uri, *data)
 
     def user_subscribe(self, handler, topic):
         """Subscribes to events in the user id uri space of the realm.
@@ -202,7 +202,7 @@ class ClientAuthComponent(ApplicationSession):
         
         """
         uri = self.create_topic_uri(topic)
-        self.subscribe(handler, uri)
+        return self.subscribe(handler, uri)
 
     def user_register(self, function, topic):
         """registers events in the user id uri space of the realm.
@@ -213,7 +213,7 @@ class ClientAuthComponent(ApplicationSession):
         
         """
         uri = self.create_topic_uri(topic)
-        self.register(function, uri)
+        return self.register(function, uri)
 
     def user_call(self, procedure_name, *args, **kwargs):
         """Call a remote procedure of the user.
@@ -224,4 +224,4 @@ class ClientAuthComponent(ApplicationSession):
         
         """
         uri = self.create_topic_uri(procedure_name)
-        self.call(uri, *args, **kwargs)
+        return self.call(uri, *args, **kwargs)
