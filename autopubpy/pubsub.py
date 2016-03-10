@@ -264,7 +264,7 @@ def method_publish(topic=u"", options=PublishOptions()):
                 raise TypeError("method_publish must be used on a Publisher subclass. "
                                 "Cannot be used on {}.".format(func.__name__))
             return_value = func(self, *args, **kwargs)
-            print func.__name__
+            #print func.__name__
             kwargs['options'] = options
             kwargs['method'] = func.__name__
             #print self, len(self.subscribers), self.subscribers

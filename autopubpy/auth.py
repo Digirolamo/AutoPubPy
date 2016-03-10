@@ -196,10 +196,32 @@ class ClientAuthComponent(ApplicationSession):
         """Subscribes to events in the user id uri space of the realm.
         
         Args:
-            data (callable): When we get a publish event, 
-                the callback is called.
+            handler (callable): When we get a publish event, 
+                the handler is called.
             topic (unicode): The topic to be published.
         
         """
         uri = self.create_topic_uri(topic)
         self.subscribe(handler, uri)
+
+    def user_register(self, function, topic):
+        """registers events in the user id uri space of the realm.
+        
+        Args:
+            function (callable): The function to be called.
+            topic (unicode): The topic to be published.
+        
+        """
+        uri = self.create_topic_uri(topic)
+        self.register(function, uri)
+
+    def user_call(self, procedure_name, *args, **kwargs):
+        """Call a remote procedure of the user.
+        
+        Args:
+            procedure_name (unicode): The name of the function to be called.
+            topic (unicode): The topic to be published.
+        
+        """
+        uri = self.create_topic_uri(procedure_name)
+        self.call(uri, *args, **kwargs)
